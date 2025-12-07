@@ -1,0 +1,35 @@
+[00:00:01.611] Server  WARN     ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+[00:00:01.769] Server  LOG      ✓ Ready in 1319ms
+[00:00:01.933] Server  LOG     🔍 Checking Campaign: 1%3F%5Bsub_id%5D%3F%5Bclick_id%5D
+[00:00:02.554] Server  LOG     ❌ Campaign 1%3F%5Bsub_id%5D%3F%5Bclick_id%5D Not Found
+[00:00:04.937] Server  LOG      ○ Compiling / ...
+[00:00:05.983] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:06.001] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:25.667] Server  LOG     🔍 Checking Campaign: 1%3F%5Bsub_id%5D%3F%5Bclick_id%5D
+[00:00:26.307] Server  LOG     ❌ Campaign 1%3F%5Bsub_id%5D%3F%5Bclick_id%5D Not Found
+[00:00:26.485] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:30.296] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:31.948] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:02:29.315] Server  LOG      ✓ Compiled in 171ms
+[00:04:48.452] Server  LOG     🔍 Checking Campaign: test99%3F%5Bsub_id%5D%3F%5Bclick_id%5D
+[00:04:49.070] Server  LOG     ❌ Campaign test99%3F%5Bsub_id%5D%3F%5Bclick_id%5D Not Found
+[00:04:49.411] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:04:54.820] Server  LOG     🔍 Checking Campaign: test99%3Fsuperman
+[00:04:56.046] Server  LOG     ❌ Campaign test99%3Fsuperman Not Found
+[00:04:56.199] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:05:04.368] Server  LOG     🔍 Checking Campaign: test99%3Fsuperman
+[00:05:04.994] Server  LOG     ❌ Campaign test99%3Fsuperman Not Found
+[00:05:05.197] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:05:58.315] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:06:03.741] Server  LOG     🔍 Checking Campaign: test99
+[00:06:04.198] Server  LOG     🔗 Using Redirect Domain: blog.clubmytrip.com
+[00:06:27.985] Server  LOG     🔍 Checking Campaign: test99
+[00:06:28.604] Server  LOG     🔗 Using Redirect Domain: blog.clubmytrip.com
+[00:10:51.399] Server  LOG     🔍 Checking Campaign: test99
+[00:10:52.056] Server  LOG     🔗 Using Redirect Domain: blog.clubmytrip.com
+[00:11:01.622] Server  LOG     🔍 Checking Campaign: test99
+[00:11:02.234] Server  LOG     🔗 Using Redirect Domain: blog.clubmytrip.com
+[00:14:12.771] Server  LOG     🔍 Checking Campaign: test99
+[00:14:13.894] Server  LOG     🔗 Using Redirect Domain: blog.clubmytrip.com
+[00:15:52.447] Server  LOG     🔍 Checking Campaign: test99
+[00:15:53.182] Server  LOG     🔗 Using Redirect Domain: blog.clubmytrip.com

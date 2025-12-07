@@ -1,3 +1,4 @@
+// src/middleware.ts (COMPLETE CODE)
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { Redis } from '@upstash/redis';
@@ -35,8 +36,7 @@ export async function middleware(req: NextRequest) {
       redirect_domain?: string;
     };
 
-    // 4. Bot Check (Optional: Add User-Agent logic here)
-    const isBot = false; 
+    const isBot = false; // Add User-Agent logic if needed
 
     // Decision
     let finalUrl = campaign.safe_link || 'https://google.com'; 
@@ -47,7 +47,7 @@ export async function middleware(req: NextRequest) {
         isMoneyPage = true;
     }
 
-    // 5. Replace Variables
+    // 4. Replace Variables
     const subId = parts[1] || '';
     const clickId = parts[2] || '';
 
@@ -59,15 +59,19 @@ export async function middleware(req: NextRequest) {
        finalUrl = finalUrl.substring(0, finalUrl.lastIndexOf('http')); 
     }
 
-    // 6. REDIRECT EXECUTION (Double Jump)
+    // 5. REDIRECT EXECUTION 🚀
     if (isMoneyPage && campaign.redirect_domain) {
-        // Base64 Encode for firewall bypass
+        // Base64 Encode
         const base64Link = Buffer.from(finalUrl).toString('base64');
         
-        // Jump to Middleman (e.g. blog.clubmytrip.com/go.php)
+        // Middleman URL
         const middlemanUrl = `https://${campaign.redirect_domain}/go.php?data=${base64Link}`;
         
-        return NextResponse.redirect(new URL(middlemanUrl));
+        // Force Referrer Header (CRITICAL FIX) 🛠️
+        const response = NextResponse.redirect(new URL(middlemanUrl));
+        response.headers.set('Referrer-Policy', 'unsafe-url'); 
+        
+        return response;
     }
 
     return NextResponse.redirect(new URL(finalUrl));

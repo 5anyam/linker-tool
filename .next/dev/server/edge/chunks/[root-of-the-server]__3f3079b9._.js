@@ -14,6 +14,7 @@ module.exports = mod;
 "[project]/link-cloaker/src/middleware.ts [middleware-edge] (ecmascript)", ((__turbopack_context__) => {
 "use strict";
 
+// src/middleware.ts (COMPLETE CODE)
 __turbopack_context__.s([
     "config",
     ()=>config,
@@ -48,8 +49,7 @@ async function middleware(req) {
         if (!rawData) return __TURBOPACK__imported__module__$5b$project$5d2f$link$2d$cloaker$2f$node_modules$2f$next$2f$dist$2f$esm$2f$server$2f$web$2f$exports$2f$index$2e$js__$5b$middleware$2d$edge$5d$__$28$ecmascript$29$__["NextResponse"].next();
         const data = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
         const campaign = data;
-        // 4. Bot Check (Optional: Add User-Agent logic here)
-        const isBot = false;
+        const isBot = false; // Add User-Agent logic if needed
         // Decision
         let finalUrl = campaign.safe_link || 'https://google.com';
         let isMoneyPage = false;
@@ -57,7 +57,7 @@ async function middleware(req) {
             finalUrl = campaign.offer_link;
             isMoneyPage = true;
         }
-        // 5. Replace Variables
+        // 4. Replace Variables
         const subId = parts[1] || '';
         const clickId = parts[2] || '';
         if (finalUrl.includes('{sub_id}')) finalUrl = finalUrl.replace('{sub_id}', subId);
@@ -66,13 +66,16 @@ async function middleware(req) {
         if (finalUrl.includes('http') && finalUrl.lastIndexOf('http') > 0) {
             finalUrl = finalUrl.substring(0, finalUrl.lastIndexOf('http'));
         }
-        // 6. REDIRECT EXECUTION (Double Jump)
+        // 5. REDIRECT EXECUTION 🚀
         if (isMoneyPage && campaign.redirect_domain) {
-            // Base64 Encode for firewall bypass
+            // Base64 Encode
             const base64Link = __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$buffer__$5b$external$5d$__$28$node$3a$buffer$2c$__cjs$29$__["Buffer"].from(finalUrl).toString('base64');
-            // Jump to Middleman (e.g. blog.clubmytrip.com/go.php)
+            // Middleman URL
             const middlemanUrl = `https://${campaign.redirect_domain}/go.php?data=${base64Link}`;
-            return __TURBOPACK__imported__module__$5b$project$5d2f$link$2d$cloaker$2f$node_modules$2f$next$2f$dist$2f$esm$2f$server$2f$web$2f$exports$2f$index$2e$js__$5b$middleware$2d$edge$5d$__$28$ecmascript$29$__["NextResponse"].redirect(new URL(middlemanUrl));
+            // Force Referrer Header (CRITICAL FIX) 🛠️
+            const response = __TURBOPACK__imported__module__$5b$project$5d2f$link$2d$cloaker$2f$node_modules$2f$next$2f$dist$2f$esm$2f$server$2f$web$2f$exports$2f$index$2e$js__$5b$middleware$2d$edge$5d$__$28$ecmascript$29$__["NextResponse"].redirect(new URL(middlemanUrl));
+            response.headers.set('Referrer-Policy', 'unsafe-url');
+            return response;
         }
         return __TURBOPACK__imported__module__$5b$project$5d2f$link$2d$cloaker$2f$node_modules$2f$next$2f$dist$2f$esm$2f$server$2f$web$2f$exports$2f$index$2e$js__$5b$middleware$2d$edge$5d$__$28$ecmascript$29$__["NextResponse"].redirect(new URL(finalUrl));
     } catch (error) {

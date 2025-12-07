@@ -1,4 +1,3 @@
-// src/app/api/campaign/route.ts
 import { NextResponse } from 'next/server';
 import { Redis } from '@upstash/redis';
 
@@ -10,19 +9,14 @@ const redis = new Redis({
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    
-    // Naye fields receive karna
     const { campId, offerLink, safeLink, redirectDomain, baseDomain, countries } = body;
 
-    if (!campId || !offerLink) {
-      return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
-    }
+    if (!campId || !offerLink) return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
 
-    // Redis me pura naya data save karna
     await redis.set(`camp:${campId}`, JSON.stringify({
       offer_link: offerLink,
       safe_link: safeLink,
-      redirect_domain: redirectDomain, // Ye bahut zaruri hai
+      redirect_domain: redirectDomain,
       base_domain: baseDomain,
       countries: countries,
       created_at: new Date().toISOString()
@@ -30,7 +24,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Redis Save Error:", error);
     return NextResponse.json({ error: 'Database Error' }, { status: 500 });
   }
 }

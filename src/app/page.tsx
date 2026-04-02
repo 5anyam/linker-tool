@@ -102,18 +102,20 @@ export default function Home() {
             </div>
 
             {/* Redirect Domain (Middleman) */}
-            <div>
-              <label className="block text-sm font-medium text-green-400 mb-1">Redirect Domain (Middleman)</label>
-              <input 
-                type="text" 
-                required
-                className="w-full bg-slate-950 border border-green-800/50 rounded-lg p-3 text-white focus:border-green-500 outline-none"
-                value={formData.redirectDomain}
-                onChange={(e) => setFormData({...formData, redirectDomain: e.target.value})}
-                placeholder="blog.clubmytrip.com"
-              />
-              <p className="text-xs text-slate-500 mt-1">Must have <code>go.php</code> uploaded.</p>
-            </div>
+           {/* Redirect Domain (Middleman) */}
+<div>
+  <label className="block text-sm font-medium text-green-400 mb-1">Redirect Domain (Middleman)</label>
+  <select
+    required
+    className="w-full bg-slate-950 border border-green-800/50 rounded-lg p-3 text-white focus:border-green-500 outline-none cursor-pointer"
+    value={formData.redirectDomain}
+    onChange={(e) => setFormData({...formData, redirectDomain: e.target.value})}
+  >
+    <option value="blog.clubmytrip.com">blog.clubmytrip.com</option>
+    <option value="blog.trendships.com">blog.trendships.com</option>
+  </select>
+  <p className="text-xs text-slate-500 mt-1">Must have <code>go.php</code> uploaded.</p>
+</div>
 
             {/* Safe Link */}
              <div>

@@ -8,7 +8,7 @@ export default function Home() {
     safeLink: '',
     baseDomain: 'linker-tool.vercel.app', // Default Tool URL
     redirectDomain: 'blog.clubmytrip.com', // Default Middleman
-    countries: 'US, GB, CA, IN, AU, DE'
+    countries: 'US, GB, CA, IN, AU, DE, PL'
   });
   
   const [generatedLink, setGeneratedLink] = useState('');
@@ -113,6 +113,8 @@ export default function Home() {
   >
     <option value="blog.clubmytrip.com">blog.clubmytrip.com</option>
     <option value="blog.trendships.com">blog.trendships.com</option>
+    <option value="blog.influencershark.com">blog.influencershark.com</option>
+    <option value="blog.fabfeeds.com">blog.fabfeed.com</option>
   </select>
   <p className="text-xs text-slate-500 mt-1">Must have <code>go.php</code> uploaded.</p>
 </div>

@@ -7,6 +7,41 @@ const redis = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN!,
 });
 
+// HTML entities escape (meta-refresh URL ke double-quote/& ke liye)
+function htmlEscape(s: string) {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+// 200 OK HTML page jo client-side redirect karta hai bina koi Referer bheje.
+// Kyunki navigation is page se hoti hai jismein <meta referrer no-referrer> hai,
+// destination ko source/cloaker ka Referer bilkul nahi milta.
+function noReferrerRedirect(targetUrl: string) {
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="refresh" content="0;url=${htmlEscape(targetUrl)}">
+<script>window.location.replace(${JSON.stringify(targetUrl)});</script>
+</head>
+<body><a href="${htmlEscape(targetUrl)}">Continue</a></body>
+</html>`;
+
+  return new NextResponse(html, {
+    status: 200,
+    headers: {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Referrer-Policy': 'no-referrer',
+      // Cache na ho warna cloaked link stale response de sakta hai
+      'Cache-Control': 'no-store, no-cache, must-revalidate',
+    },
+  });
+}
+
 export async function middleware(req: NextRequest) {
   const url = req.nextUrl;
   
@@ -59,18 +94,15 @@ export async function middleware(req: NextRequest) {
     if (isMoneyPage && campaign.redirect_domain) {
         const base64Link = Buffer.from(finalUrl).toString('base64');
         const middlemanUrl = `https://${campaign.redirect_domain}/go.php?data=${base64Link}`;
-        
-        // Use Status 302 (Found) - Faster for Affiliates than 307
-        const response = NextResponse.redirect(new URL(middlemanUrl), { status: 302 });
-        response.headers.set('Referrer-Policy', 'unsafe-url'); 
-        return response;
+
+        // 200 OK HTML page se redirect - koi Referer aage nahi jaata.
+        // Tracking sub_id/click_id URL ke andar hoti hai, isliye wo sahi jaati hai.
+        return noReferrerRedirect(middlemanUrl);
     }
 
     // Scenario 2: Direct Jump (1 Hop Saved)
     // Agar "Redirect Domain" khali chod doge dashboard mein, toh ye seedha Awin bhej dega
-    // Referrer: linker-tool.vercel.app jayega
-    const response = NextResponse.redirect(new URL(finalUrl), { status: 302 });
-    return response;
+    return noReferrerRedirect(finalUrl);
 
   } catch (error) {
     console.error("Error:", error);

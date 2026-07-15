@@ -8,6 +8,8 @@ export default function Home() {
     safeLink: '',
     baseDomain: 'linker-tool.vercel.app', // Default Tool URL
     redirectDomain: 'blog.clubmytrip.com', // Default Middleman
+    referrerMode: 'no-referrer', // no-referrer | origin | unsafe-url
+    redirectMethod: '200', // 200 (safest HTML) | 302 (fast)
     countries: 'US, GB, CA, IN, AU, DE, PL'
   });
   
@@ -118,6 +120,39 @@ export default function Home() {
   </select>
   <p className="text-xs text-slate-500 mt-1">Must have <code>go.php</code> uploaded.</p>
 </div>
+
+            {/* Redirect Method */}
+            <div>
+              <label className="block text-sm font-medium text-slate-400 mb-1">Redirect Method</label>
+              <select
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-indigo-500 outline-none cursor-pointer"
+                value={formData.redirectMethod}
+                onChange={(e) => setFormData({...formData, redirectMethod: e.target.value})}
+              >
+                <option value="200">200 HTML Page — safest (referrer 100% control)</option>
+                <option value="302">302 Redirect — fast</option>
+              </select>
+              <p className="text-xs text-slate-500 mt-1">
+                <code className="text-yellow-500">200</code> = pakka no-referrer par thoda slow. <code className="text-yellow-500">302</code> = fast par purane browser me referrer leak ho sakta hai.
+              </p>
+            </div>
+
+            {/* Referrer Mode */}
+            <div>
+              <label className="block text-sm font-medium text-slate-400 mb-1">Referrer Mode</label>
+              <select
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-indigo-500 outline-none cursor-pointer"
+                value={formData.referrerMode}
+                onChange={(e) => setFormData({...formData, referrerMode: e.target.value})}
+              >
+                <option value="no-referrer">Hide (no-referrer) — max guarantee</option>
+                <option value="origin">Origin — bhejo domain (agar campaign ruk raha ho)</option>
+                <option value="unsafe-url">Full URL — poora referrer bhejo</option>
+              </select>
+              <p className="text-xs text-slate-500 mt-1">
+                Agar koi redirect campaign aage na jaaye (network ko referrer chahiye), to <code className="text-yellow-500">Origin</code> chuno.
+              </p>
+            </div>
 
             {/* Safe Link */}
              <div>

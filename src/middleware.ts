@@ -49,7 +49,7 @@ function redirectPage(targetUrl: string) {
       'Content-Type': 'text/html; charset=utf-8',
       'Referrer-Policy': REF_POLICY,
       'X-Robots-Tag': 'noindex, nofollow',
-      // Cache na ho warna cloaked link stale response de sakta hai
+      // Cache na ho warna campaign link stale response de sakta hai
       'Cache-Control': 'no-store, no-cache, must-revalidate',
     },
   });
@@ -100,7 +100,7 @@ export async function middleware(req: NextRequest) {
       : NextResponse.redirect(new URL('/login', req.url));
   }
 
-  // Cloaked links sirf root pe hote hain (/?campId?sub?click). Baaki sab -> google.
+  // Campaign links sirf root pe hote hain (/?campId?sub?click). Baaki sab -> google.
   if (pathname !== '/') return toFallback();
 
   let rawQuery = url.search.substring(1);
@@ -160,11 +160,11 @@ export async function middleware(req: NextRequest) {
     // Ye tabhi use hoga jab dashboard mein "Redirect Domain" bhara ho
     if (isMoneyPage && campaign.redirect_domain) {
         const base64Link = Buffer.from(finalUrl).toString('base64');
-        const middlemanUrl = `https://${campaign.redirect_domain}/go.php?data=${base64Link}`;
+        const hopUrl = `https://${campaign.redirect_domain}/go.php?data=${base64Link}`;
 
         // go.php khud apna (blog) referrer affiliate ko inject karta hai,
         // isliye is hop pe no-referrer rakhna safe hai.
-        return buildRedirect(middlemanUrl, method);
+        return buildRedirect(hopUrl, method);
     }
 
     // Scenario 2: Direct Jump (1 Hop Saved)

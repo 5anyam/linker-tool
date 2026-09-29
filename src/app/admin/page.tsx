@@ -7,7 +7,7 @@ export default function Admin() {
     offerLink: '',
     safeLink: '',
     baseDomain: 'linker-tool.vercel.app', // Default Tool URL
-    redirectDomain: 'blog.clubmytrip.com', // Default Middleman
+    redirectDomain: 'blog.clubmytrip.com', // Default redirect domain
     redirectMethod: '200', // 200 (safest HTML) | 302 (fast)
     countries: 'US, GB, CA, IN, AU, DE, PL'
   });
@@ -66,9 +66,9 @@ export default function Admin() {
             Logout
           </button>
           <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            🛡️ Link Cloaker Pro
+            📊 Adshouz Campaign Manager
           </h1>
-          <p className="text-indigo-100 text-sm mt-1">Double Redirection & Firewall Bypass System</p>
+          <p className="text-indigo-100 text-sm mt-1">Create and manage campaign links</p>
         </div>
 
         <div className="p-8">
@@ -101,7 +101,7 @@ export default function Admin() {
 
             {/* Offer Link */}
             <div>
-              <label className="block text-sm font-medium text-slate-400 mb-1">Money Page (Affiliate Link)</label>
+              <label className="block text-sm font-medium text-slate-400 mb-1">Destination URL</label>
               <input 
                 type="url" 
                 required
@@ -114,10 +114,9 @@ export default function Admin() {
               </p>
             </div>
 
-            {/* Redirect Domain (Middleman) */}
-           {/* Redirect Domain (Middleman) */}
+            {/* Redirect Domain */}
 <div>
-  <label className="block text-sm font-medium text-green-400 mb-1">Redirect Domain (Middleman)</label>
+  <label className="block text-sm font-medium text-green-400 mb-1">Redirect Domain</label>
   <select
     required
     className="w-full bg-slate-950 border border-green-800/50 rounded-lg p-3 text-white focus:border-green-500 outline-none cursor-pointer"
@@ -150,7 +149,7 @@ export default function Admin() {
 
             {/* Safe Link */}
              <div>
-              <label className="block text-sm font-medium text-slate-400 mb-1">Safe Page (White Page)</label>
+              <label className="block text-sm font-medium text-slate-400 mb-1">Fallback URL</label>
               <input 
                 type="url" 
                 required
@@ -171,7 +170,7 @@ export default function Admin() {
           {/* Generated Link Box */}
           {generatedLink && (
             <div className="mt-8 bg-black/40 p-5 rounded-xl border border-green-500/30">
-              <label className="text-xs font-bold text-green-400 uppercase tracking-wider mb-2 block">Your Cloaked Link</label>
+              <label className="text-xs font-bold text-green-400 uppercase tracking-wider mb-2 block">Your Campaign Link</label>
               <div className="flex flex-col sm:flex-row items-center gap-3">
                 <code className="flex-1 block w-full text-sm text-slate-300 break-all bg-black/50 p-3 rounded border border-slate-700 font-mono">
                   {generatedLink}

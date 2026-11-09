@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
         source: "/:path*",
         headers: [
           { key: "Referrer-Policy", value: "no-referrer" },
-          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
         ],
       },
     ];

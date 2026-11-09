@@ -8,7 +8,6 @@ export default function Admin() {
     safeLink: '',
     baseDomain: 'linker-tool.vercel.app', // Default Tool URL
     redirectDomain: 'blog.clubmytrip.com', // Default redirect domain
-    redirectMethod: '200', // 200 (safest HTML) | 302 (fast)
     countries: 'US, GB, CA, IN, AU, DE, PL'
   });
   
@@ -130,22 +129,6 @@ export default function Admin() {
   </select>
   <p className="text-xs text-slate-500 mt-1">Must have <code>go.php</code> uploaded.</p>
 </div>
-
-            {/* Redirect Method */}
-            <div>
-              <label className="block text-sm font-medium text-slate-400 mb-1">Redirect Method</label>
-              <select
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-indigo-500 outline-none cursor-pointer"
-                value={formData.redirectMethod}
-                onChange={(e) => setFormData({...formData, redirectMethod: e.target.value})}
-              >
-                <option value="200">200 HTML Page — safest (referrer 100% control)</option>
-                <option value="302">302 Redirect — fast</option>
-              </select>
-              <p className="text-xs text-slate-500 mt-1">
-                Dono me referrer hamesha hidden (no-referrer) rehta hai. <code className="text-yellow-500">200</code> = safest, <code className="text-yellow-500">302</code> = fast.
-              </p>
-            </div>
 
             {/* Safe Link */}
              <div>

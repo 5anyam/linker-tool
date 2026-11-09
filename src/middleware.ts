@@ -8,70 +8,42 @@ const redis = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN!,
 });
 
-// HTML entities escape (meta-refresh URL ke double-quote/& ke liye)
-function htmlEscape(s: string) {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/"/g, '&quot;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
-
-// Base domain kabhi bhi kisi Referer me nahi jaana chahiye, isliye policy hamesha
-// 'no-referrer' hai. Purane campaigns me saved referrer_mode ab ignore hota hai.
+// Har response (redirect / 404 / pages) pe ye headers lagte hain.
+const NO_INDEX = 'noindex, nofollow, noarchive';
 const REF_POLICY = 'no-referrer';
 
-// Jo bhi seedha base domain / unknown link khole, use yahan bhej do.
-const FALLBACK_URL = 'https://www.google.com/';
+// Bare "/" (bina campaign ke) yahan jaata hai.
+const ROOT_REDIRECT_URL = process.env.ROOT_REDIRECT_URL || 'https://www.google.com/';
 
-// Redirect method:
-//  '200' -> 200 OK HTML page + client-side redirect (SAFEST, referrer 100% control).
-//  '302' -> Seedha HTTP 302 redirect (FAST, referrer Referrer-Policy header se control).
-type RedirectMethod = '200' | '302';
-
-// 200 OK HTML page jo client-side redirect karta hai. Navigation is page se hoti hai
-// aur policy no-referrer hai, isliye na source ka na base domain ka Referer leak hota hai.
-function redirectPage(targetUrl: string) {
-  const html = `<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<meta name="referrer" content="${REF_POLICY}">
-<meta http-equiv="refresh" content="0;url=${htmlEscape(targetUrl)}">
-<script>window.location.replace(${JSON.stringify(targetUrl)});</script>
-</head>
-<body><a href="${htmlEscape(targetUrl)}" rel="noreferrer noopener">Continue</a></body>
-</html>`;
-
-  return new NextResponse(html, {
-    status: 200,
-    headers: {
-      'Content-Type': 'text/html; charset=utf-8',
-      'Referrer-Policy': REF_POLICY,
-      'X-Robots-Tag': 'noindex, nofollow',
-      // Cache na ho warna campaign link stale response de sakta hai
-      'Cache-Control': 'no-store, no-cache, must-revalidate',
-    },
-  });
-}
-
-// Fast HTTP 302 redirect. Redirect response ka Referrer-Policy header aage wali
-// request pe apply hota hai (Fetch spec), isliye destination ko Referer blank milta hai.
-function httpRedirect(targetUrl: string) {
-  const res = NextResponse.redirect(new URL(targetUrl), { status: 302 });
+function withHeaders<T extends NextResponse>(res: T): T {
   res.headers.set('Referrer-Policy', REF_POLICY);
-  res.headers.set('X-Robots-Tag', 'noindex, nofollow');
-  res.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+  res.headers.set('X-Robots-Tag', NO_INDEX);
   return res;
 }
 
-// Campaign ke method ke hisaab se sahi redirect chun le.
-function buildRedirect(targetUrl: string, method: RedirectMethod) {
-  return method === '302' ? httpRedirect(targetUrl) : redirectPage(targetUrl);
+// Server-side HTTP 302. Koi HTML render nahi hota. Redirect response ka
+// Referrer-Policy header aage wali request pe apply hota hai (Fetch spec).
+function redirect302(targetUrl: string) {
+  const res = NextResponse.redirect(new URL(targetUrl), { status: 302 });
+  res.headers.set('Cache-Control', 'no-store');
+  return withHeaders(res);
 }
 
-function toFallback() {
-  return httpRedirect(FALLBACK_URL);
+// Unknown campaign / path -> khaali 404, koi page/branding nahi.
+function notFound() {
+  return withHeaders(
+    new NextResponse(null, { status: 404, headers: { 'Cache-Control': 'no-store' } })
+  );
+}
+
+// Link ke baad lage extra query params (utm_source=... etc.) destination pe forward karo.
+function appendParams(target: string, extra: string) {
+  if (!extra) return target;
+  const hashIdx = target.indexOf('#');
+  const base = hashIdx === -1 ? target : target.slice(0, hashIdx);
+  const hash = hashIdx === -1 ? '' : target.slice(hashIdx);
+  const sep = base.includes('?') ? (base.endsWith('?') || base.endsWith('&') ? '' : '&') : '?';
+  return `${base}${sep}${extra}${hash}`;
 }
 
 function isLoggedIn(req: NextRequest) {
@@ -81,58 +53,70 @@ function isLoggedIn(req: NextRequest) {
 export async function middleware(req: NextRequest) {
   const url = req.nextUrl;
   const { pathname } = url;
-  
-  if (pathname.startsWith('/api') || pathname.startsWith('/_next') || pathname.includes('favicon')) {
-    return NextResponse.next();
-  }
 
   // Login page: already logged in ho to seedha dashboard.
   if (pathname === '/login') {
-    return (await isLoggedIn(req))
-      ? NextResponse.redirect(new URL('/admin', req.url))
-      : NextResponse.next();
+    return withHeaders(
+      (await isLoggedIn(req))
+        ? NextResponse.redirect(new URL('/admin', req.url))
+        : NextResponse.next()
+    );
   }
 
   // Dashboard sirf login ke baad.
   if (pathname === '/admin' || pathname.startsWith('/admin/')) {
-    return (await isLoggedIn(req))
-      ? NextResponse.next()
-      : NextResponse.redirect(new URL('/login', req.url));
+    return withHeaders(
+      (await isLoggedIn(req))
+        ? NextResponse.next()
+        : NextResponse.redirect(new URL('/login', req.url))
+    );
   }
 
-  // Campaign links sirf root pe hote hain (/?campId?sub?click). Baaki sab -> google.
-  if (pathname !== '/') return toFallback();
+  // Campaign links sirf root pe hote hain: /?campId?sub?click[&utm_source=...]
+  if (pathname !== '/') return notFound();
 
   let rawQuery = url.search.substring(1);
-  if (!rawQuery) return toFallback();
+  if (!rawQuery) return redirect302(ROOT_REDIRECT_URL);
+
+  // Pehle '&' ke baad wala hissa = extra params (UTM etc.), jo destination pe forward honge.
+  let extraParams = '';
+  const ampIdx = rawQuery.indexOf('&');
+  if (ampIdx !== -1) {
+    extraParams = rawQuery.slice(ampIdx + 1);
+    rawQuery = rawQuery.slice(0, ampIdx);
+  }
   if (rawQuery.endsWith('=')) rawQuery = rawQuery.slice(0, -1);
-  
+
+  // Next query ko normalize karta hai: "?0001?a?b" -> "?0001%3Fa%3Fb=". Isliye decode karo.
+  try {
+    rawQuery = decodeURIComponent(rawQuery);
+  } catch {
+    return notFound();
+  }
+
   const parts = rawQuery.split('?');
   const campId = parts[0];
+  if (!campId) return notFound();
 
   try {
     const rawData = await redis.get(`camp:${campId}`);
-    if (!rawData) return toFallback();
+    if (!rawData) return notFound();
 
     const data = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
     const campaign = data as {
       offer_link: string;
       safe_link?: string;
       redirect_domain?: string;
-      redirect_method?: RedirectMethod;
     };
-
-    // Per-campaign redirect method. Default '200' (safest). Speed chahiye to '302'.
-    const method: RedirectMethod = campaign.redirect_method === '302' ? '302' : '200';
 
     const isBot = false; // Bot logic here
 
-    let finalUrl = campaign.safe_link || 'https://google.com'; 
+    let finalUrl = campaign.safe_link || 'https://google.com';
     let isMoneyPage = false;
 
     if (!isBot) {
-        finalUrl = campaign.offer_link;
-        isMoneyPage = true;
+      finalUrl = campaign.offer_link;
+      isMoneyPage = true;
     }
 
     const subId = parts[1] || '';
@@ -140,7 +124,7 @@ export async function middleware(req: NextRequest) {
 
     if (finalUrl.includes('{sub_id}')) finalUrl = finalUrl.replace('{sub_id}', subId);
     if (finalUrl.includes('{click_id}')) finalUrl = finalUrl.replace('{click_id}', clickId);
-    
+
     // Agar offer link ke baad koi doosra URL DIRECTLY jod diya gaya ho to use hatao.
     // BUT: redirect campaigns me nested URL query param hota hai (url=https://shop.com) —
     // use kaatna nahi hai, warna wo campaign toot ke ruk jaata hai.
@@ -154,26 +138,19 @@ export async function middleware(req: NextRequest) {
       }
     }
 
-    // 🚀 OPTIMIZATION START 🚀
-    
-    // Scenario 1: Referrer Hiding (Go via PHP)
-    // Ye tabhi use hoga jab dashboard mein "Redirect Domain" bhara ho
-    if (isMoneyPage && campaign.redirect_domain) {
-        const base64Link = Buffer.from(finalUrl).toString('base64');
-        const hopUrl = `https://${campaign.redirect_domain}/go.php?data=${base64Link}`;
+    finalUrl = appendParams(finalUrl, extraParams);
 
-        // go.php khud apna (blog) referrer affiliate ko inject karta hai,
-        // isliye is hop pe no-referrer rakhna safe hai.
-        return buildRedirect(hopUrl, method);
+    // Scenario 1: "Redirect Domain" bhara ho to go.php hop ke through.
+    if (isMoneyPage && campaign.redirect_domain) {
+      const base64Link = Buffer.from(finalUrl).toString('base64');
+      return redirect302(`https://${campaign.redirect_domain}/go.php?data=${base64Link}`);
     }
 
-    // Scenario 2: Direct Jump (1 Hop Saved)
-    // Agar "Redirect Domain" khali chod doge dashboard mein, toh ye seedha Awin bhej dega.
-    return buildRedirect(finalUrl, method);
-
+    // Scenario 2: Direct jump.
+    return redirect302(finalUrl);
   } catch (error) {
-    console.error("Error:", error);
-    return toFallback();
+    console.error('Error:', error);
+    return notFound();
   }
 }
 

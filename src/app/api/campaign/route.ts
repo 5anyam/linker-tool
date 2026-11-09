@@ -14,11 +14,9 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { campId, offerLink, safeLink, redirectDomain, baseDomain, countries, redirectMethod } = body;
+    const { campId, offerLink, safeLink, redirectDomain, baseDomain, countries } = body;
 
     if (!campId || !offerLink) return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
-
-    const method = redirectMethod === '302' ? '302' : '200';
 
     await redis.set(`camp:${campId}`, JSON.stringify({
       offer_link: offerLink,
@@ -26,7 +24,6 @@ export async function POST(req: NextRequest) {
       redirect_domain: redirectDomain,
       base_domain: baseDomain,
       countries: countries,
-      redirect_method: method,
       created_at: new Date().toISOString()
     }));
 

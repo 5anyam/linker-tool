@@ -1,11 +1,24 @@
 'use client';
 import { useState, useEffect } from 'react';
 
+// Redirect Domain aur Fallback URL dono dropdown isi list se bante hain.
+const DOMAINS = [
+  'blog.clubmytrip.com',
+  'blog.trendships.com',
+  'blog.influencershark.com',
+  'blog.fabfeeds.com',
+  'blog.thebuyday.com',
+  'www.thebuyday.com',
+  'www.clubmytrip.com',
+  'www.fabfeeds.com',
+  'www.trendships.com',
+];
+
 export default function Admin() {
   const [formData, setFormData] = useState({
     campId: '',
     offerLink: '',
-    safeLink: '',
+    safeLink: `https://${DOMAINS[0]}/`, // Default fallback
     baseDomain: 'linker-tool.vercel.app', // Default Tool URL
     redirectDomain: 'blog.clubmytrip.com', // Default redirect domain
     countries: 'US, GB, CA, IN, AU, DE, PL'
@@ -122,10 +135,9 @@ export default function Admin() {
     value={formData.redirectDomain}
     onChange={(e) => setFormData({...formData, redirectDomain: e.target.value})}
   >
-    <option value="blog.clubmytrip.com">blog.clubmytrip.com</option>
-    <option value="blog.trendships.com">blog.trendships.com</option>
-    <option value="blog.influencershark.com">blog.influencershark.com</option>
-    <option value="blog.fabfeeds.com">blog.fabfeed.com</option>
+    {DOMAINS.map((d) => (
+      <option key={d} value={d}>{d}</option>
+    ))}
   </select>
   <p className="text-xs text-slate-500 mt-1">Must have <code>go.php</code> uploaded.</p>
 </div>
@@ -133,13 +145,16 @@ export default function Admin() {
             {/* Safe Link */}
              <div>
               <label className="block text-sm font-medium text-slate-400 mb-1">Fallback URL</label>
-              <input 
-                type="url" 
+              <select
                 required
-                placeholder="https://style.shuttlewithme.com/blog..."
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none"
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none cursor-pointer"
+                value={formData.safeLink}
                 onChange={(e) => setFormData({...formData, safeLink: e.target.value})}
-              />
+              >
+                {DOMAINS.map((d) => (
+                  <option key={d} value={`https://${d}/`}>{`https://${d}/`}</option>
+                ))}
+              </select>
             </div>
 
             <button 
